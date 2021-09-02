@@ -37,7 +37,7 @@ This off course if your folder structure has the same setup. Change when needed.
 
 
 ### Flare
-- Create an account on (https://flareapp.io/)[https://flareapp.io/]
+- Create an account on [flareapp.io](https://flareapp.io)
 - Add a new project to your account and copy the key to your project.
 
 Add your key in your `parameters.json`: __system.exception.flare.key__: "api key"
