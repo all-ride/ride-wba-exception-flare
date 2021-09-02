@@ -1,0 +1,4 @@
+
+system.exception.path               Directory where the error reports will be written
+exception.<locale>                  Exception page where <locale> is the specified locale
+system.exception.flare.key          Flare API key

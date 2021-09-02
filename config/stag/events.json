@@ -1,0 +1,9 @@
+{
+    "app.exception": [
+        {
+            "interface": "ride\\web\\base\\ExceptionApplicationListener",
+            "method": "handleException",
+            "weight": 75
+        }
+    ]
+}

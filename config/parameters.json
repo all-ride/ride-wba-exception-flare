@@ -1,0 +1,3 @@
+{
+    "system.exception.path": "%application%/data/log/exception"
+}
