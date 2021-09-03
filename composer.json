@@ -4,6 +4,10 @@
     "license": "MIT",
     "authors": [
         {
+            "name": "Kobe Christiaensen",
+            "email": "kobe@statik.be"
+        },
+        {
             "name": "Kristof Serré",
             "email": "kristof@statik.be"
         }

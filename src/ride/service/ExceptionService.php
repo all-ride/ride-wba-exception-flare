@@ -2,16 +2,16 @@
 
 namespace ride\service;
 
+use Exception;
+use Facade\FlareClient\Flare;
+use ride\application\system\System;
 use ride\library\http\Request;
 use ride\library\log\Log;
 use ride\library\security\model\User;
 use ride\library\security\SecurityManager;
+use ride\library\StringHelper;
 use ride\library\system\file\File;
 use ride\library\validation\exception\ValidationException;
-use ride\library\StringHelper;
-use Facade\FlareClient\Flare;
-
-use \Exception;
 
 /**
  * Module to report and log exceptions
@@ -42,6 +42,9 @@ class ExceptionService {
      */
     protected $directory;
 
+    /** @var System */
+    protected $system;
+
     /**
      * Flare API key
      * @var string
@@ -67,6 +70,13 @@ class ExceptionService {
     }
 
     /**
+     * @param \ride\application\system\System $system
+     */
+    public function setSystem(System $system) {
+        $this->system = $system;
+    }
+
+    /**
      * Sets the instance of the current user
      * @param \ride\library\security\model\User
      * @return null
@@ -87,7 +97,6 @@ class ExceptionService {
     public function setDirectory(File $directory) {
         $this->directory = $directory;
     }
-
 
     /**
      * Sets the API key for Flare
@@ -114,24 +123,78 @@ class ExceptionService {
     public function sendReport(Exception $exception) {
         $report = $this->createReport($exception, $this->request, $this->user);
         //Add report to LOG
-        $this->writeReport($report);
+        $id = $this->writeReport($report);
 
-        if (!$this->$this->flareKey) {
+        if (!$this->flareKey) {
             return;
         }
+        //Start Flare logging build
+        $this->logFlare($exception, $id);
+    }
 
+    protected function logFlare($exception, $logId) {
         $flare = Flare::register($this->flareKey)->registerFlareHandlers();
         if ($this->user) {
             $flare->group('user', [
                 'email'    => $this->user->getEmail(),
                 'name'     => $this->user->getName(),
-                'username' => $this->user->getUserName()
+                'username' => $this->user->getUserName(),
             ]);
         }
 
         $flare->createReport($exception);
+
+        $flare->stage($this->system->getEnvironment());
+        $flare->applicationPath(rtrim(getcwd(), '\/'));
+
+        $flare->group('session', $this->request->getSession()->getAll());
+        $flare->group('query string', $this->request->getQueryParameters());
+        $flare->group('body', $this->request->getBodyParameters());
+
+        if ($exception instanceof ValidationException) {
+            $flare->context('validation', $this->parseValidationErrors($exception->getAllErrors()));
+        }
+
+        $logSession = $this->log->getLogSession($logId);
+
+        $flare->group('queries', $this->parseLogMessages($logSession->getLogMessagesBySource('database')));
+        $flare->context('security', $this->parseLogMessages($logSession->getLogMessagesBySource('security')));
+        $flare->context('mail', $this->parseLogMessages($logSession->getLogMessagesBySource('mail')));
+
         //Send the actual exception to Flare App
         $flare->report($exception);
+    }
+
+    private function parseValidationErrors($errors) {
+        $parsedErrors = [];
+        foreach ($errors as $index => $errorArray) {
+            /** @var \ride\library\validation\ValidationError $error */
+            foreach ($errorArray as $error) {
+                $parsedErrors[$index] = [
+                    'name'       => $index,
+                    'code'       => $error->getCode(),
+                    'message'    => $error->getMessage(),
+                    'parameters' => $error->getParameters()
+                ];
+            }
+        }
+
+        return $parsedErrors;
+    }
+
+    private function parseLogMessages($messages) {
+        $parsed = [];
+        foreach ($messages as $message) {
+            /** @var \ride\library\log\LogMessage $query */
+
+            $parsed[] = [
+                'sql'       => $message->getTitle(),
+                'time'      => $message->getMicroTime(),
+                'microtime' => $message->getDate()
+            ];
+        }
+
+        return $parsed;
     }
 
     /**

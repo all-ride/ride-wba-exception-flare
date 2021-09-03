@@ -25,6 +25,7 @@
                 "setLog",
                 "setRequest",
                 "setSecurityManager",
+                "setSystem",
                 {
                     "method": "setDirectory",
                     "arguments": [
