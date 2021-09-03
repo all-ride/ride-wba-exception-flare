@@ -4,7 +4,6 @@ namespace ride\service;
 
 use Exception;
 use Facade\FlareClient\Flare;
-use ride\application\system\System;
 use ride\library\http\Request;
 use ride\library\log\Log;
 use ride\library\security\model\User;
@@ -42,8 +41,11 @@ class ExceptionService {
      */
     protected $directory;
 
-    /** @var System */
-    protected $system;
+    /**
+     * Current environment
+     * @var string
+     */
+    protected $environment;
 
     /**
      * Flare API key
@@ -70,10 +72,10 @@ class ExceptionService {
     }
 
     /**
-     * @param \ride\application\system\System $system
+     * Sets the current environment
      */
-    public function setSystem(System $system) {
-        $this->system = $system;
+    public function setEnvironment($environment) {
+        $this->environment = $environment;
     }
 
     /**
@@ -144,12 +146,11 @@ class ExceptionService {
 
         $flare->createReport($exception);
 
-        $flare->stage($this->system->getEnvironment());
+        $flare->stage($this->environment);
         $flare->applicationPath(rtrim(getcwd(), '\/'));
+        $flare->censorRequestBodyFields(['password']);
 
         $flare->group('session', $this->request->getSession()->getAll());
-        $flare->group('query string', $this->request->getQueryParameters());
-        $flare->group('body', $this->request->getBodyParameters());
 
         if ($exception instanceof ValidationException) {
             $flare->context('validation', $this->parseValidationErrors($exception->getAllErrors()));
@@ -186,7 +187,6 @@ class ExceptionService {
         $parsed = [];
         foreach ($messages as $message) {
             /** @var \ride\library\log\LogMessage $query */
-
             $parsed[] = [
                 'sql'       => $message->getTitle(),
                 'time'      => $message->getMicroTime(),
