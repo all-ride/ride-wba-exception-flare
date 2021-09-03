@@ -1,0 +1,57 @@
+{
+    "dependencies": [
+        {
+            "class": "ride\\library\\system\\file\\File",
+            "id": "exception",
+            "calls": [
+                {
+                    "method": "__construct",
+                    "arguments": [
+                        {
+                            "name": "path",
+                            "type": "parameter",
+                            "properties": {
+                                "key": "system.exception.path",
+                                "default": "%application%/data/exception"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "class": "ride\\service\\ExceptionService",
+            "calls": [
+                "setLog",
+                "setRequest",
+                "setSecurityManager",
+                "setSystem",
+                {
+                    "method": "setDirectory",
+                    "arguments": [
+                        {
+                            "name": "directory",
+                            "type": "dependency",
+                            "properties": {
+                                "interface": "ride\\library\\system\\file\\File",
+                                "id": "exception"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "method": "setFlareKey",
+                    "arguments": [
+                        {
+                            "name": "flareKey",
+                            "type": "parameter",
+                            "properties": {
+                                "key": "system.exception.flare.key"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
