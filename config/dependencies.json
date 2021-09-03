@@ -25,7 +25,6 @@
                 "setLog",
                 "setRequest",
                 "setSecurityManager",
-                "setSystem",
                 {
                     "method": "setDirectory",
                     "arguments": [
@@ -35,6 +34,19 @@
                             "properties": {
                                 "interface": "ride\\library\\system\\file\\File",
                                 "id": "exception"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "method": "setEnvironment",
+                    "arguments": [
+                        {
+                            "name": "environment",
+                            "type": "call",
+                            "properties": {
+                                "interface": "ride\\application\\system\\System",
+                                "method": "getEnvironment"
                             }
                         }
                     ]
