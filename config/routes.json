@@ -1,10 +1,10 @@
 {
     "routes": [
         {
-            "path": "/exception",
+            "path": "/exception/%id%",
             "controller": "ride\\web\\base\\controller\\ExceptionController",
             "action": "indexAction",
-            "id": "exception",
+            "id": "exception.log",
             "methods": ["GET", "HEAD"]
         }
     ]

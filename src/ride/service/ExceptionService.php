@@ -4,6 +4,7 @@ namespace ride\service;
 
 use Exception;
 use Facade\FlareClient\Flare;
+use ride\application\system\System;
 use ride\library\http\Request;
 use ride\library\log\Log;
 use ride\library\security\model\User;
@@ -42,7 +43,6 @@ class ExceptionService {
     protected $directory;
 
     /**
-     * Current environment
      * @var string
      */
     protected $environment;
@@ -72,7 +72,7 @@ class ExceptionService {
     }
 
     /**
-     * Sets the current environment
+     * @var string $environment
      */
     public function setEnvironment($environment) {
         $this->environment = $environment;
@@ -105,7 +105,7 @@ class ExceptionService {
      * @param string $recipient
      * @return null
      */
-    public function setFlareKey($flareKey) {
+    public function setFlareKey($flareKey = null) {
         $this->flareKey = $flareKey;
     }
 
@@ -127,9 +127,10 @@ class ExceptionService {
         //Add report to LOG
         $id = $this->writeReport($report);
 
-        if (!$this->flareKey) {
-            return;
+        if (!$this->flareKey && $this->environment === 'dev') {
+            return $id;
         }
+
         //Start Flare logging build
         $this->logFlare($exception, $id);
     }
@@ -148,9 +149,10 @@ class ExceptionService {
 
         $flare->stage($this->environment);
         $flare->applicationPath(rtrim(getcwd(), '\/'));
-        $flare->censorRequestBodyFields(['password']);
 
         $flare->group('session', $this->request->getSession()->getAll());
+        $flare->group('query string', $this->request->getQueryParameters());
+        $flare->group('body', $this->request->getBodyParameters());
 
         if ($exception instanceof ValidationException) {
             $flare->context('validation', $this->parseValidationErrors($exception->getAllErrors()));
@@ -161,9 +163,12 @@ class ExceptionService {
         $flare->group('queries', $this->parseLogMessages($logSession->getLogMessagesBySource('database')));
         $flare->context('security', $this->parseLogMessages($logSession->getLogMessagesBySource('security')));
         $flare->context('mail', $this->parseLogMessages($logSession->getLogMessagesBySource('mail')));
+        $flare->context('i18n', $this->parseLogMessages($logSession->getLogMessagesBySource('i18n')));
 
         //Send the actual exception to Flare App
         $flare->report($exception);
+
+        return $logId;
     }
 
     private function parseValidationErrors($errors) {
@@ -187,6 +192,7 @@ class ExceptionService {
         $parsed = [];
         foreach ($messages as $message) {
             /** @var \ride\library\log\LogMessage $query */
+
             $parsed[] = [
                 'sql'       => $message->getTitle(),
                 'time'      => $message->getMicroTime(),
