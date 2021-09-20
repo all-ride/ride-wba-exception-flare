@@ -127,12 +127,14 @@ class ExceptionService {
         //Add report to LOG
         $id = $this->writeReport($report);
 
-        if (!$this->flareKey && $this->environment === 'dev') {
+        if ($this->environment === 'dev') {
             return $id;
         }
 
         //Start Flare logging build
-        $this->logFlare($exception, $id);
+        if ($this->flareKey) {
+            $this->logFlare($exception, $id);
+        }
     }
 
     protected function logFlare($exception, $logId) {

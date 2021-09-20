@@ -42,10 +42,11 @@ class ExceptionApplicationListener {
         // Write and send report to FLAREAPP
         $id = $service->sendReport($exception);
 
-        // dispatch to the exception route
         $route = $web->getRouterService()->getRouteById('exception.log');
 
-        $route->setArguments(array('id' => $id));
+        if ($id) {
+            $route->setArguments(array('id' => $id));
+        }
 
         $request = $web->createRequest($route->getPath(), 'GET');
         $request->setRoute($route);

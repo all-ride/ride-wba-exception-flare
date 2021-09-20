@@ -16,11 +16,16 @@ class ExceptionController extends AbstractController
      *
      * @return null
      */
-    public function indexAction(Log $log, $id)
+    public function indexAction(Log $log, $id = null)
     {
         $logSession = $this->getLog()->getLogSession($id);
         if (!$logSession) {
-            $this->response->setNotFound();
+            $this->setTemplateView('base/exception', array(
+                'id' => $id,
+                'form' => null,
+            ));
+
+            $this->response->setHeader('X-Ride-ExceptionForm', 'true');
 
             return;
         }
