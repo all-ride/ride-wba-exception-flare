@@ -138,7 +138,7 @@ class ExceptionService {
     }
 
     protected function logFlare($exception, $logId) {
-        $flare = Flare::register($this->flareKey)->registerFlareHandlers();
+        $flare = Flare::register($this->flareKey)->registerExceptionHandler();
         if ($this->user) {
             $flare->group('user', [
                 'email'    => $this->user->getEmail(),
