@@ -35,16 +35,17 @@ class ExceptionApplicationListener {
         // gather needed variables
         $web = $event->getArgument('web');
         $request = $web->getRequest();
+        /** @var \ride\library\http\Response $response */
         $response = $web->getResponse();
         $locale = $i18n->getLocale();
 
         // Write and send report to FLAREAPP
-        $service->sendReport($exception);
+        $id = $service->sendReport($exception);
 
-        // dispatch to the exception route
-        $route = $web->getRouterService()->getRouteById('exception.' . $locale->getCode());
-        if ($route === null) {
-            $route = $web->getRouterService()->getRouteById('exception');
+        $route = $web->getRouterService()->getRouteById('exception.log');
+
+        if ($id) {
+            $route->setArguments(array('id' => $id));
         }
 
         $request = $web->createRequest($route->getPath(), 'GET');
