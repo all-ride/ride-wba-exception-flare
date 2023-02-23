@@ -127,9 +127,9 @@ class ExceptionService {
         //Add report to LOG
         $id = $this->writeReport($report);
 
-        if ($this->environment === 'dev') {
+        /*if ($this->environment === 'dev') {
             return $id;
-        }
+        }*/
 
         //Start Flare logging build
         if ($this->flareKey) {
@@ -162,10 +162,12 @@ class ExceptionService {
 
         $logSession = $this->log->getLogSession($logId);
 
-        $flare->group('queries', $this->parseLogMessages($logSession->getLogMessagesBySource('database')));
-        $flare->context('security', $this->parseLogMessages($logSession->getLogMessagesBySource('security')));
-        $flare->context('mail', $this->parseLogMessages($logSession->getLogMessagesBySource('mail')));
-        $flare->context('i18n', $this->parseLogMessages($logSession->getLogMessagesBySource('i18n')));
+        if ($logSession) {
+            $flare->group('queries', $this->parseLogMessages($logSession->getLogMessagesBySource('database')));
+            $flare->context('security', $this->parseLogMessages($logSession->getLogMessagesBySource('security')));
+            $flare->context('mail', $this->parseLogMessages($logSession->getLogMessagesBySource('mail')));
+            $flare->context('i18n', $this->parseLogMessages($logSession->getLogMessagesBySource('i18n')));
+        }
 
         //Send the actual exception to Flare App
         $flare->report($exception);
