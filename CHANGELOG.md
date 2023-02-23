@@ -1,4 +1,7 @@
 # ride-wba-exception-flare
+## [1.0.4] - 2023-02-23
+### Updated
+- Added check to get source data from log file only if data in log exists
 ## [1.0.3] - 2021-12-03
 ### Updated
 - Set ExceptionService to only handle Exceptions instead of exceptions AND errors
